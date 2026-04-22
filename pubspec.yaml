@@ -1,0 +1,102 @@
+name: appso1
+description: VPN App - Fast, Secure & Private Internet Access
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # HTTP client
+  http: ^1.2.0
+
+  # VPN Core
+  openvpn_flutter: ^1.3.4
+  oneconnect_flutter: ^1.0.5
+
+  # Google Sign In
+  google_sign_in: ^6.2.1
+
+  # Firebase
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.1.2
+  cloud_firestore: ^5.2.1
+  firebase_remote_config: ^5.0.4
+  firebase_analytics: ^11.2.1
+  firebase_messaging: ^15.0.4
+  firebase_crashlytics: ^4.0.4
+
+  # AdMob
+  google_mobile_ads: ^5.1.0
+
+  # In-App Purchase (VIP)
+  in_app_purchase: ^3.2.0
+  purchases_flutter: ^10.0.1
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^14.2.7
+
+  # UI
+  flutter_animate: ^4.5.0
+  lottie: ^3.1.2
+  fl_chart: ^0.68.0
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  flutter_svg: ^2.0.10+1
+  country_flags: ^4.1.2
+  percent_indicator: ^4.2.3
+  animated_text_kit: ^4.2.2
+  glassmorphism: ^3.0.0
+
+  # Utils
+  connectivity_plus: ^6.0.3
+  shared_preferences: ^2.3.2
+  dio: ^5.7.0
+  intl: ^0.20.2
+  package_info_plus: ^8.1.0
+  url_launcher: ^6.3.1
+  share_plus: ^10.0.2
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^9.2.2
+
+  # Icons
+  cupertino_icons: ^1.0.8
+  font_awesome_flutter: ^10.7.0
+  material_symbols_icons: ^4.2928.1
+
+dependency_overrides:
+  package_info_plus: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.12
+  riverpod_generator: ^2.4.3
+  json_serializable: ^6.8.0
+  json_annotation: ^4.9.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21
+  web:
+    generate: false
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/

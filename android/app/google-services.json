@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "284800524184",
+    "project_id": "sen-vpn-3cca3",
+    "storage_bucket": "sen-vpn-3cca3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:284800524184:android:b61d6da573ab3cf597d5ed",
+        "android_client_info": {
+          "package_name": "com.senvpn.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_KOVIbLA6BS2mBu-hIaFpr630lfa14Ko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

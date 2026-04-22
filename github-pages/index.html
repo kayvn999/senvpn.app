@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEN VPN – Kết nối an toàn, bảo mật toàn diện</title>
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/kayvn999/senvpn/refs/heads/main/senvpn.png" />
+  <meta name="description" content="SEN VPN – Ứng dụng VPN nhanh, bảo mật và riêng tư. Server toàn cầu, giao thức OpenVPN." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #4f46e5;
+      --gold: #ffab00;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #f0f0ff;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 800; color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .nav-logo-icon img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .nav-link {
+      font-size: 14px; color: var(--muted); text-decoration: none;
+    }
+    .nav-link:hover { color: var(--primary); }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, #f0f0ff 0%, #fff8e1 50%, #f7f8ff 100%);
+      padding: 80px 24px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(108,99,255,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: -60px; left: -60px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(255,171,0,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(108,99,255,0.1);
+      color: var(--primary);
+      font-size: 12px; font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 54px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero p {
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 36px;
+    }
+    .hero-app-icon {
+      width: 100px; height: 100px;
+      border-radius: 28px;
+      overflow: hidden;
+      margin: 0 auto 32px;
+      box-shadow: 0 20px 50px rgba(108,99,255,0.35);
+    }
+    .hero-app-icon img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-size: 16px; font-weight: 700;
+      padding: 16px 36px;
+      border-radius: 16px;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(108,99,255,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(108,99,255,0.45);
+    }
+    .btn-primary svg { width: 20px; height: 20px; }
+
+    /* ── FEATURES ── */
+    .section {
+      padding: 72px 24px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 48px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: #f7f8ff;
+      border: 1px solid #ededff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(108,99,255,0.1);
+    }
+    .feature-icon {
+      font-size: 28px; margin-bottom: 14px;
+    }
+    .feature-card h3 {
+      font-size: 16px; font-weight: 700; margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 13.5px; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── VIP ── */
+    .vip-section {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 72px 24px;
+      text-align: center;
+      color: #fff;
+    }
+    .vip-section .section-title { color: #fff; }
+    .vip-section .section-sub { color: rgba(255,255,255,0.6); }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .plan-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 28px 20px;
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .plan-card:hover { transform: translateY(-4px); }
+    .plan-card.popular {
+      background: linear-gradient(135deg, rgba(255,171,0,0.15), rgba(255,143,0,0.1));
+      border-color: rgba(255,171,0,0.4);
+    }
+    .popular-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(90deg, #ffd740, #ff8f00);
+      color: #fff;
+      font-size: 10px; font-weight: 800;
+      padding: 4px 12px; border-radius: 100px;
+      white-space: nowrap;
+    }
+    .plan-duration {
+      font-size: 11px; font-weight: 700;
+      color: var(--gold); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .plan-name {
+      font-size: 18px; font-weight: 800; margin-bottom: 12px;
+    }
+    .plan-price {
+      font-size: 26px; font-weight: 900;
+      color: var(--gold); margin-bottom: 4px;
+    }
+    .plan-currency {
+      font-size: 12px; color: rgba(255,255,255,0.5);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #f7f8ff;
+      padding: 40px 24px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+    }
+    footer .footer-logo {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-bottom: 16px;
+      font-size: 16px; font-weight: 800;
+    }
+    footer p { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    footer a { color: var(--primary); text-decoration: none; font-size: 13px; }
+    footer a:hover { text-decoration: underline; }
+    footer .footer-links { display: flex; justify-content: center; gap: 24px; margin-top: 12px; }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .hero { padding: 60px 20px 56px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon"><img src="https://raw.githubusercontent.com/kayvn999/senvpn/refs/heads/main/senvpn.png" alt="SEN VPN" /></div>
+    SEN VPN
+  </a>
+  <a href="privacy.html" class="nav-link">Chính sách bảo mật</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-app-icon"><img src="https://raw.githubusercontent.com/kayvn999/senvpn/refs/heads/main/senvpn.png" alt="SEN VPN" /></div>
+  <div class="hero-badge">⚡ Nhanh · Bảo mật · Riêng tư</div>
+  <h1>Kết nối <span>an toàn</span><br/>ở bất cứ đâu</h1>
+  <p>SEN VPN bảo vệ kết nối internet của bạn với giao thức OpenVPN và server toàn cầu.</p>
+  <a href="https://play.google.com/store/apps/details?id=com.senvpn.app" class="btn-primary">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3.18 23.76c.3.17.64.24.99.2l13.2-11.96L13.8 8.43 3.18 23.76zm17.27-10.4L17.7 11.8 14.1 12l3.6 3.6 2.75-2.24zm-17.27-8.12L13.8 15.57l3.57-3.57L4.17.24c-.35-.04-.69.03-.99.2-.59.34-.98 1-.98 1.8s.39 1.46.98 1.8zM.5 2.04v19.92c0 .8.39 1.46.98 1.8l11.82-11.82L1.48.24C.89.58.5 1.24.5 2.04z"/>
+    </svg>
+    Tải trên Google Play
+  </a>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+  <h2 class="section-title">Tại sao chọn SEN VPN?</h2>
+  <p class="section-sub">Được xây dựng để bảo vệ quyền riêng tư của bạn</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Server toàn cầu</h3>
+      <p>Kết nối đến server ở nhiều quốc gia, luôn tìm được kết nối phù hợp nhất.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Tốc độ cao</h3>
+      <p>Băng thông không giới hạn với VIP, trải nghiệm mượt mà khi stream và duyệt web.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Mã hóa OpenVPN</h3>
+      <p>Giao thức OpenVPN đáng tin cậy bảo vệ toàn bộ traffic của bạn.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Kill Switch</h3>
+      <p>Tự động chặn internet nếu VPN bị ngắt — bảo vệ IP thật của bạn mọi lúc.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>DNS Leak Protection</h3>
+      <p>Ngăn rò rỉ DNS để đảm bảo danh tính của bạn luôn được bảo mật.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👆</div>
+      <h3>Khóa sinh trắc học</h3>
+      <p>Bảo vệ ứng dụng bằng vân tay hoặc Face ID để tăng thêm lớp bảo mật.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIP PLANS -->
+<section class="vip-section">
+  <h2 class="section-title">Gói VIP</h2>
+  <p class="section-sub">Nâng cấp để trải nghiệm đầy đủ tính năng cao cấp</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-duration">1 tuần</div>
+      <div class="plan-name">Gói Tuần</div>
+      <div class="plan-price">29.000</div>
+      <div class="plan-currency">VND / tuần</div>
+    </div>
+    <div class="plan-card popular">
+      <div class="popular-badge">🔥 PHỔ BIẾN</div>
+      <div class="plan-duration">1 tháng</div>
+      <div class="plan-name">Gói Tháng</div>
+      <div class="plan-price">79.000</div>
+      <div class="plan-currency">VND / tháng</div>
+    </div>
+    <div class="plan-card">
+      <div class="plan-duration">1 năm</div>
+      <div class="plan-name">Gói Năm</div>
+      <div class="plan-price">670.000</div>
+      <div class="plan-currency">VND / năm</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <img src="https://raw.githubusercontent.com/kayvn999/senvpn/refs/heads/main/senvpn.png" alt="SEN VPN" style="width:28px;height:28px;border-radius:8px;object-fit:cover;" />
+    SEN VPN
+  </div>
+  <p>Bảo vệ quyền riêng tư của bạn trên internet</p>
+  <p>© 2026 SEN VPN. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="privacy.html">Chính sách bảo mật</a>
+    <a href="mailto:raustorevip@gmail.com">Liên hệ</a>
+    <a href="https://play.google.com/store/apps/details?id=com.senvpn.app">Google Play</a>
+  </div>
+</footer>
+
+</body>
+</html>
