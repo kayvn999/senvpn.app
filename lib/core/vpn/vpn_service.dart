@@ -32,7 +32,7 @@ class VpnService {
   void setDnsLeakProtection(bool enabled) => _dnsLeakProtectionEnabled = enabled;
 
   Future<void> initialize() async {
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (Platform.isAndroid || (Platform.isIOS && !_isSimulator())) {
       _openVpn = ovpn.OpenVPN(
         onVpnStatusChanged: _onStatusChanged,
         onVpnStageChanged: _onStageChanged,
@@ -43,6 +43,11 @@ class VpnService {
         localizedDescription: 'SenVPN',
       );
     }
+  }
+
+  bool _isSimulator() {
+    if (!Platform.isIOS) return false;
+    return !kReleaseMode && Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
   }
 
   double _prevByteIn = 0;
