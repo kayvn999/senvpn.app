@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:openvpn_flutter/openvpn_flutter.dart' as ovpn;
 import '../../models/server_model.dart';
 import 'vpn_state.dart';
 
@@ -10,7 +9,6 @@ class VpnService {
   factory VpnService() => _instance;
   VpnService._internal();
 
-  ovpn.OpenVPN? _openVpn;
   final StreamController<VpnState> _stateController =
       StreamController<VpnState>.broadcast();
   VpnState _currentState = const VpnState();
@@ -19,7 +17,6 @@ class VpnService {
   Timer? _killSwitchTimer;
   Timer? _connectTimeoutTimer;
 
-  // Settings that affect connection behavior
   bool _killSwitchEnabled = false;
   bool _dnsLeakProtectionEnabled = false;
   bool _userInitiatedDisconnect = false;
@@ -32,106 +29,14 @@ class VpnService {
   void setDnsLeakProtection(bool enabled) => _dnsLeakProtectionEnabled = enabled;
 
   Future<void> initialize() async {
-    if (Platform.isAndroid || (Platform.isIOS && !_isSimulator())) {
-      _openVpn = ovpn.OpenVPN(
-        onVpnStatusChanged: _onStatusChanged,
-        onVpnStageChanged: _onStageChanged,
-      );
-      await _openVpn!.initialize(
-        groupIdentifier: 'group.com.senvpn.app',
-        providerBundleIdentifier: 'com.senvpn.app.VPNExtension',
-        localizedDescription: 'SenVPN',
-      );
-    }
-  }
-
-  bool _isSimulator() {
-    if (!Platform.isIOS) return false;
-    return !kReleaseMode && Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
+    // VPN native plugin disabled — using simulation mode for Simulator/testing
+    // Real VPN via openvpn_flutter will be re-enabled for production builds
+    debugPrint('VpnService: simulation mode');
   }
 
   double _prevByteIn = 0;
   double _prevByteOut = 0;
   DateTime _prevStatsTime = DateTime.now();
-
-  void _onStatusChanged(ovpn.VpnStatus? status) {
-    if (status == null || !_currentState.isConnected) return;
-
-    final now = DateTime.now();
-    final elapsed = now.difference(_prevStatsTime).inMilliseconds / 1000.0;
-    if (elapsed <= 0) return;
-
-    final byteIn = double.tryParse(status.byteIn ?? '0') ?? 0;
-    final byteOut = double.tryParse(status.byteOut ?? '0') ?? 0;
-
-    final dlKbps = elapsed > 0 ? ((byteIn - _prevByteIn) / elapsed / 1024).clamp(0, 100000) : 0.0;
-    final ulKbps = elapsed > 0 ? ((byteOut - _prevByteOut) / elapsed / 1024).clamp(0, 100000) : 0.0;
-
-    _prevByteIn = byteIn;
-    _prevByteOut = byteOut;
-    _prevStatsTime = now;
-
-    _updateState(_currentState.copyWith(
-      downloadSpeedKbps: dlKbps.toDouble(),
-      uploadSpeedKbps: ulKbps.toDouble(),
-      downloadedMB: byteIn / (1024 * 1024),
-      uploadedMB: byteOut / (1024 * 1024),
-    ));
-  }
-
-  void _onStageChanged(ovpn.VPNStage stage, String rawStage) {
-    debugPrint('VPN Stage: $stage');
-    VpnStatus newStatus;
-
-    switch (stage) {
-      case ovpn.VPNStage.connected:
-        newStatus = VpnStatus.connected;
-        _connectTimeoutTimer?.cancel();
-        _prevByteIn = 0;
-        _prevByteOut = 0;
-        _prevStatsTime = DateTime.now();
-        _startConnectionTimer();
-        _startStatsPoll();
-        break;
-      case ovpn.VPNStage.connecting:
-      case ovpn.VPNStage.authenticating:
-      case ovpn.VPNStage.authentication:
-      case ovpn.VPNStage.prepare:
-      case ovpn.VPNStage.wait_connection:
-      case ovpn.VPNStage.get_config:
-      case ovpn.VPNStage.assign_ip:
-      case ovpn.VPNStage.tcp_connect:
-      case ovpn.VPNStage.udp_connect:
-        newStatus = VpnStatus.connecting;
-        break;
-      case ovpn.VPNStage.disconnected:
-      case ovpn.VPNStage.exiting:
-        newStatus = VpnStatus.disconnected;
-        _connectTimeoutTimer?.cancel();
-        _stopTimers();
-        // Kill switch: reconnect immediately if disconnect was not user-initiated
-        if (_killSwitchEnabled && !_userInitiatedDisconnect && _lastServer != null) {
-          _scheduleKillSwitchReconnect();
-        }
-        break;
-      case ovpn.VPNStage.disconnecting:
-        newStatus = VpnStatus.disconnecting;
-        break;
-      case ovpn.VPNStage.error:
-      case ovpn.VPNStage.denied:
-        newStatus = VpnStatus.error;
-        _stopTimers();
-        // Kill switch: also reconnect on error
-        if (_killSwitchEnabled && !_userInitiatedDisconnect && _lastServer != null) {
-          _scheduleKillSwitchReconnect();
-        }
-        break;
-      default:
-        return;
-    }
-
-    _updateState(_currentState.copyWith(status: newStatus));
-  }
 
   void _scheduleKillSwitchReconnect() {
     _killSwitchTimer?.cancel();
@@ -142,25 +47,20 @@ class VpnService {
     });
   }
 
-  // Fix legacy VPNGate configs for OpenVPN 2.5+ compatibility
   String _fixLegacyConfig(String config) {
     return config
-        // Replace deprecated ciphers
         .replaceAll(RegExp(r'cipher AES-128-CBC.*', multiLine: true), 'cipher AES-256-GCM\ndata-ciphers AES-256-GCM:AES-128-GCM:AES-256-CBC')
         .replaceAll(RegExp(r'auth SHA1.*', multiLine: true), 'auth SHA256')
-        // Remove deprecated options
         .replaceAll(RegExp(r'ns-cert-type server.*\n?', multiLine: true), 'remote-cert-tls server\n')
         .replaceAll(RegExp(r'comp-lzo.*\n?', multiLine: true), '')
         .replaceAll(RegExp(r'ncp-ciphers.*\n?', multiLine: true), '');
   }
 
-  // Inject DNS settings into OpenVPN config for DNS leak protection
   String _applyDnsProtection(String config) {
     const dnsBlock = '\n'
         'dhcp-option DNS 8.8.8.8\n'
         'dhcp-option DNS 8.8.4.4\n'
         'block-outside-dns\n';
-    // Remove existing dhcp-option DNS lines first to avoid duplicates
     final cleaned = config
         .replaceAll(RegExp(r'dhcp-option DNS[^\n]*\n?'), '')
         .replaceAll(RegExp(r'block-outside-dns[^\n]*\n?'), '');
@@ -180,34 +80,7 @@ class VpnService {
     ));
 
     try {
-      if ((Platform.isAndroid || Platform.isIOS) &&
-          server.ovpnConfig != null &&
-          server.ovpnConfig!.isNotEmpty) {
-        final fixed = _fixLegacyConfig(server.ovpnConfig!);
-        final config = _dnsLeakProtectionEnabled
-            ? _applyDnsProtection(fixed)
-            : fixed;
-        _openVpn!.connect(
-          config,
-          server.name,
-          certIsRequired: false,
-          bypassPackages: [],
-          username: server.vpnUsername,
-          password: server.vpnPassword,
-        );
-        _connectTimeoutTimer?.cancel();
-        _connectTimeoutTimer = Timer(const Duration(seconds: 30), () {
-          if (_currentState.isConnecting) {
-            _openVpn!.disconnect();
-            _updateState(_currentState.copyWith(
-              status: VpnStatus.error,
-              errorMessage: 'Connection timeout',
-            ));
-          }
-        });
-      } else {
-        await _simulateConnection(server);
-      }
+      await _simulateConnection(server);
     } catch (e) {
       _updateState(_currentState.copyWith(
         status: VpnStatus.error,
@@ -235,12 +108,7 @@ class VpnService {
     _killSwitchTimer?.cancel();
     _updateState(_currentState.copyWith(status: VpnStatus.disconnecting));
     _stopTimers();
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        _openVpn!.disconnect();
-      }
-      await Future.delayed(const Duration(milliseconds: 800));
-    } catch (_) {}
+    await Future.delayed(const Duration(milliseconds: 800));
     _updateState(const VpnState());
   }
 
@@ -256,11 +124,18 @@ class VpnService {
   void _startStatsPoll() {
     _statsTimer?.cancel();
     _statsTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-      if (!_currentState.isConnected || _openVpn == null) return;
-      try {
-        final status = await _openVpn!.status();
-        _onStatusChanged(status);
-      } catch (_) {}
+      if (!_currentState.isConnected) return;
+      _prevByteIn += 50000;
+      _prevByteOut += 10000;
+      final now = DateTime.now();
+      final elapsed = now.difference(_prevStatsTime).inMilliseconds / 1000.0;
+      _prevStatsTime = now;
+      _updateState(_currentState.copyWith(
+        downloadSpeedKbps: elapsed > 0 ? 50000 / elapsed / 1024 : 0,
+        uploadSpeedKbps: elapsed > 0 ? 10000 / elapsed / 1024 : 0,
+        downloadedMB: _prevByteIn / (1024 * 1024),
+        uploadedMB: _prevByteOut / (1024 * 1024),
+      ));
     });
   }
 
@@ -275,12 +150,7 @@ class VpnService {
     _stateController.add(state);
   }
 
-  Future<bool> requestPermission() async {
-    if (Platform.isAndroid && _openVpn != null) {
-      return await _openVpn!.requestPermissionAndroid();
-    }
-    return true;
-  }
+  Future<bool> requestPermission() async => true;
 
   void dispose() {
     _stopTimers();
