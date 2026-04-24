@@ -775,7 +775,7 @@ class _FeatureStrip extends StatelessWidget {
           _Dot(),
           _FeatItem(icon: Icons.dns_rounded,       label: 'No Logs',   color: Color(0xFF10B981)),
           _Dot(),
-          _FeatItem(icon: Icons.bolt_rounded,      label: 'Tốc độ cao', color: Color(0xFF0EA5E9)),
+          _FeatItem(icon: Icons.bolt_rounded,      label: 'High Speed', color: Color(0xFF0EA5E9)),
           _Dot(),
           _FeatItem(icon: Icons.security_rounded,  label: 'Kill Switch', color: Color(0xFFF59E0B)),
         ],

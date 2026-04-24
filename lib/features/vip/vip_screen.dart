@@ -400,7 +400,7 @@ class _VipPurchaseView extends ConsumerWidget {
                 ).animate().fadeIn(delay: 150.ms),
                 const SizedBox(height: 5),
                 const Text(
-                  'Không giới hạn · Tốc độ cao · Bảo mật nâng cao',
+                  'Unlimited · High Speed · Advanced Security',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Color(0xFF6B7280), fontSize: 12.5),
                 ).animate().fadeIn(delay: 200.ms),
