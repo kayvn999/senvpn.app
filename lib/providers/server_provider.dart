@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:oneconnect_flutter/openvpn_flutter.dart' as oc;
 import '../core/services/vpngate_service.dart';
 import '../models/server_model.dart';
 import '../providers/app_config_provider.dart';
@@ -41,67 +39,6 @@ final _directVpnGateProvider = FutureProvider<List<ServerModel>>((ref) async {
   );
 });
 
-/// Fetches servers from OneConnect SDK
-final _oneConnectProvider = FutureProvider<List<ServerModel>>((ref) async {
-  final config = ref.watch(freeConfigProvider);
-  if (!config.oneconnectEnabled) return [];
-  final apiKey = config.oneconnectApiKey;
-  if (apiKey.isEmpty) return [];
-
-  try {
-    final openVpn = oc.OpenVPN();
-    openVpn.apiKey = apiKey;
-    final servers = <ServerModel>[];
-
-    ServerModel toModel(oc.VpnServer s, bool isFree) {
-      final name = s.serverName.isNotEmpty ? s.serverName : 'Unknown';
-      return ServerModel(
-        id: 'oc_${isFree ? 'free' : 'pro'}_${s.id}',
-        name: name,
-        host: s.server,
-        port: 1194,
-        protocol: 'OpenVPN',
-        country: name,
-        countryCode: '',
-        flag: '🌍',
-        ping: 99,
-        load: 0,
-        isFree: isFree,
-        isVip: !isFree,
-        isActive: true,
-        speedMbps: 100,
-        ovpnConfig: oc.OpenVPN.decrypt(s.ovpnConfiguration),
-        vpnUsername: oc.OpenVPN.decrypt(s.vpnUserName),
-        vpnPassword: oc.OpenVPN.decrypt(s.vpnPassword),
-      );
-    }
-
-    if (config.oneconnectFreeEnabled ?? true) {
-      final freeList = await openVpn.fetchOneConnect(oc.OneConnect.free);
-      debugPrint('[OC] free servers: ${freeList.length}');
-      for (final s in freeList) {
-        debugPrint('[OC] free: ${s.serverName} | host=${s.server} | ovpn=${s.ovpnConfiguration.length} chars | user=${s.vpnUserName}');
-        if (s.ovpnConfiguration.isEmpty) continue;
-        servers.add(toModel(s, true));
-      }
-    }
-
-    if (config.oneconnectProEnabled ?? true) {
-      final proList = await openVpn.fetchOneConnect(oc.OneConnect.pro);
-      debugPrint('[OC] pro servers: ${proList.length}');
-      for (final s in proList) {
-        debugPrint('[OC] pro: ${s.serverName} | host=${s.server} | ovpn=${s.ovpnConfiguration.length} chars');
-        if (s.ovpnConfiguration.isEmpty) continue;
-        servers.add(toModel(s, false));
-      }
-    }
-    debugPrint('[OC] total servers added: ${servers.length}');
-    return servers;
-  } catch (e, st) {
-    debugPrint('[OC] ERROR: $e\n$st');
-    return [];
-  }
-});
 
 String _flag(String cc) {
   try {
@@ -113,7 +50,6 @@ String _flag(String cc) {
 final serversProvider = FutureProvider<List<ServerModel>>((ref) async {
   final vpsServers = await ref.watch(_vpsServersProvider.future);
   final directServers = await ref.watch(_directVpnGateProvider.future);
-  final ocServers = await ref.watch(_oneConnectProvider.future);
 
   final hostsSeen = <String>{};
   final merged = <ServerModel>[];
@@ -122,9 +58,6 @@ final serversProvider = FutureProvider<List<ServerModel>>((ref) async {
     if (hostsSeen.add(s.host)) merged.add(s);
   }
   for (final s in directServers) {
-    if (hostsSeen.add(s.host)) merged.add(s);
-  }
-  for (final s in ocServers) {
     if (hostsSeen.add(s.host)) merged.add(s);
   }
 
